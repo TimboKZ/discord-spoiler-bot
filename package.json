@@ -1,0 +1,33 @@
+{
+  "name": "discord-spoiler-bot",
+  "version": "1.0.0",
+  "description": "A bot for Discord that replaces spoiler messages with GIFs that reveal content on hover.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimboKZ/discord-spoiler-bot.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "spoilers",
+    "spoiler"
+  ],
+  "author": {
+    "name": "Timur Kuzhagaluyev",
+    "email": "tim.kuzh@gmail.com",
+    "url": "https://foxypanda.me/"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TimboKZ/discord-spoiler-bot/issues"
+  },
+  "homepage": "https://github.com/TimboKZ/discord-spoiler-bot#readme",
+  "dependencies": {
+    "discord.js": "^11.0.0",
+    "gifencoder": "^1.0.6"
+  }
+}
