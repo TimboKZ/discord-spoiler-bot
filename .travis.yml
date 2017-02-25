@@ -3,7 +3,9 @@ node_js:
   - "6"
 os:
   - linux
-  - osx
+install:
+  - sudo yum install cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm pangomm-devel giflib-devel
+  - npm install
 cache:
   directories:
   - node_modules
