@@ -87,7 +87,7 @@ Use the following command to start the bot:
 $ node index.js
 ```
 
-Now you should be able to send messages of the format `<topic>:spoiler:<content>` to create spoiler GIFs.
+Now you should be able to send messages of the format `<topic>:spoiler:<content>` to create spoiler GIFs. Read sections below to see how you can change the format of spoiler messages.
 
 # Advanced configuration
 
