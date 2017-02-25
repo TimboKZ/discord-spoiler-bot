@@ -6,7 +6,9 @@
 
 "use strict";
 
+const fs = require('fs');
 const Discord = require('discord.js');
+const GifGenerator = require('./GifGenerator');
 
 class SpoilerMessage {
 
@@ -89,7 +91,9 @@ class SpoilerBot {
         if (this.config.extractSpoiler) {
             return this.config.extractSpoiler(message);
         }
-        // TODO: Implement default spoiler extraction.
+        if (!message.content.match(/^.+:spoiler:.+$/)) return null;
+        let parts = message.content.split(':spoiler:');
+        return new SpoilerMessage(message.author, parts[0], parts[1]);
     }
 
     /**
@@ -98,6 +102,10 @@ class SpoilerBot {
      */
     printSpoiler(originalMessage, spoiler) {
         let messageContent = `**${spoiler.topic}** spoiler from <@${spoiler.author.id}>`;
+        let filePath = GifGenerator.createSpoilerGif(spoiler);
+        originalMessage.channel.sendFile(filePath, 'spoiler.gif', messageContent).then(() => {
+            fs.unlink(filePath);
+        });
     }
 
 }
