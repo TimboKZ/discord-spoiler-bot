@@ -5,7 +5,7 @@
  * @license MIT
  */
 
-"use strict";
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
@@ -178,6 +178,7 @@ class GifGenerator {
      * @param {Context2d} context
      * @param {number} marginTop
      * @param {string} text
+     * @param {string} colour
      */
     static renderTextToContext(context, marginTop, text, colour) {
         context.fillStyle = colour;
