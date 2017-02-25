@@ -11,7 +11,9 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const GifGenerator = require('./GifGenerator');
 
-class SpoilerMessage {
+const DEFAULT_MAX_LINES = 6;
+
+class Spoiler {
 
     /**
      * @param {Discord.User} author
@@ -31,12 +33,13 @@ class SpoilerBot {
     /**
      * @callback extractSpoiler
      * @param {Discord.Message} message
-     * @return {SpoilerMessage}
+     * @return {Spoiler}
      */
 
     /**
      * @param {Object} config
      * @param {string} config.token
+     * @param {number} config.maxLines
      * @param {string[]} [config.include]
      * @param {string[]} [config.exclude]
      * @param {extractSpoiler} [config.extractSpoiler]
@@ -44,6 +47,9 @@ class SpoilerBot {
     constructor(config) {
         if (!config || !config.token) {
             throw new Error('No bot token has been specified!');
+        }
+        if (config.maxLines && (typeof config.maxLines !== 'number' || config.maxLines < 1)) {
+            throw new Error('`maxLines` should be an integer greater than zero!');
         }
         if (config.include && config.exclude) {
             throw new Error('You can\'t specify both included and excluded channels - choose one.');
@@ -86,7 +92,7 @@ class SpoilerBot {
 
     /**
      * @param {Discord.Message} message
-     * @return {SpoilerMessage}
+     * @return {Spoiler}
      */
     extractSpoiler(message) {
         if (this.config.extractSpoiler) {
@@ -94,16 +100,17 @@ class SpoilerBot {
         }
         if (!message.content.match(/^.+:spoiler:.+$/)) return null;
         let parts = message.content.split(':spoiler:');
-        return new SpoilerMessage(message.author, parts[0], parts[1]);
+        return new Spoiler(message.author, parts[0], parts[1]);
     }
 
     /**
      * @param {Discord.Message} originalMessage
-     * @param {SpoilerMessage} spoiler
+     * @param {Spoiler} spoiler
      */
     printSpoiler(originalMessage, spoiler) {
         let messageContent = `<@${spoiler.author.id}>: **${spoiler.topic}** spoiler`;
-        GifGenerator.createSpoilerGif(spoiler, filePath => {
+        let maxLines = this.config.maxLines ? this.config.maxLines : DEFAULT_MAX_LINES;
+        GifGenerator.createSpoilerGif(spoiler, maxLines, filePath => {
             originalMessage.channel.sendFile(filePath, 'spoiler.gif', messageContent).then(() => {
                 fs.unlink(filePath);
             });
@@ -112,5 +119,7 @@ class SpoilerBot {
     }
 
 }
+
+SpoilerBot.Spoiler = Spoiler;
 
 module.exports = SpoilerBot;

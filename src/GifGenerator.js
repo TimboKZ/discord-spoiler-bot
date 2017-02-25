@@ -18,7 +18,6 @@ const TEXT_COLOUR = '#c0ba9e';
 const SPOILER_MESSAGE_COLOUR = '#8c8775';
 
 const MARGIN = 10;
-const MAX_LINES = 6;
 const GIF_WIDTH = 400;
 const LINE_HEIGHT = 40;
 const LINE_WIDTH = GIF_WIDTH - MARGIN * 2;
@@ -36,24 +35,26 @@ class GifGenerator {
      */
 
     /**
-     * @param {SpoilerMessage} spoiler
+     * @param {Spoiler} spoiler
+     * @param {number} maxLines
      * @param {done} done
      * @return {string}
      */
-    static createSpoilerGif(spoiler, done) {
+    static createSpoilerGif(spoiler, maxLines, done) {
         let hash = `${spoiler.author.id}-${(new Date()).getTime()}`;
         let gifPath = path.join(GIF_PATH, `${hash}.gif`);
-        GifGenerator.createGif(spoiler, gifPath, done);
+        GifGenerator.createGif(spoiler, maxLines, gifPath, done);
         return gifPath;
     }
 
     /**
-     * @param {SpoilerMessage} spoiler
+     * @param {Spoiler} spoiler
+     * @param {number} maxLines
      * @param {string} filePath
      * @param {done} done
      */
-    static createGif(spoiler, filePath, done) {
-        let lines = GifGenerator.prepareLines(spoiler);
+    static createGif(spoiler, maxLines, filePath, done) {
+        let lines = GifGenerator.prepareLines(spoiler, maxLines);
         let height = (lines.length + 0.5) * LINE_HEIGHT / 2;
         let context = GifGenerator.createCanvasContext(height);
         let encoder = GifGenerator.prepareEncoder(height, filePath, done);
@@ -63,20 +64,22 @@ class GifGenerator {
     }
 
     /**
-     * @param {SpoilerMessage} spoiler
+     * @param {Spoiler} spoiler
+     * @param {number} maxLines
      * @return {string[]}
      */
-    static prepareLines(spoiler) {
+    static prepareLines(spoiler, maxLines) {
         let context = GifGenerator.createCanvasContext(15);
-        return GifGenerator.breakIntoLines(spoiler.content, context);
+        return GifGenerator.breakIntoLines(spoiler.content, context, maxLines);
     }
 
     /**
      * @param {string} text
      * @param {Context2d} context
+     * @param {number} maxLines
      * @return {string[]}
      */
-    static breakIntoLines(text, context) {
+    static breakIntoLines(text, context, maxLines) {
         let words = text.split(' ');
         let lines = [];
         let line = '';
@@ -93,8 +96,8 @@ class GifGenerator {
         if(line !== '' || lines.length === 0) {
             lines.push(line);
         }
-        if(lines.length > MAX_LINES) {
-            lines = lines.slice(0, MAX_LINES);
+        if(lines.length > maxLines) {
+            lines = lines.slice(0, maxLines);
             lines[lines.length - 1] += '...';
         }
         return lines;
@@ -129,7 +132,6 @@ class GifGenerator {
         GifGenerator.renderTextToContext(context, LINE_HEIGHT / 2, SPOILER_MESSAGE, SPOILER_MESSAGE_COLOUR);
         encoder.addFrame(context);
     }
-
 
     /**
      * @param {Context2d} context

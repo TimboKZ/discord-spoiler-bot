@@ -58,9 +58,15 @@ Then, you'll need to install `discord-spoiler-bot` and save it as a dependency:
 $ npm install discord-spoiler-bot --save
 ```
 
+To create spoilers, send a message of the following format: `<topic>:spoiler:<content>`, e.g.:
+
+```
+FMA:spoiler:Elric brothers are alchemists!
+```
+
 # Basic usage
 
-First of all, you'll need to obtain a secret token for your bot. The steps you need to take to do this [are described here](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token). Once you have your token, you can begin using Discord Spoiler Bot! Create a file called `index.js` and put the following inside:
+First of all, you'll need to obtain a secret token for your bot. The steps you need to take to do this [are described here](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token). Make sure to give the bot enough permissions to post messages and delete messages of other users. Once you have your token, you can begin using Discord Spoiler Bot! Create a file called `index.js` and put the following inside:
 
 ```javascript
 'use strict';
@@ -74,6 +80,14 @@ let config = {
 let bot = new SpoilerBot(config);
 bot.connect();
 ```
+
+Use the following command to start the bot:
+
+```shell
+$ node index.js
+```
+
+Now you should be able to send messages of the format `<topic>:spoiler:<content>` to create spoiler GIFs.
 
 # Advanced configuration
 
