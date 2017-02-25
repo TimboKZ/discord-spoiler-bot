@@ -1,6 +1,6 @@
 {
   "name": "discord-spoiler-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A bot for Discord that replaces spoiler messages with GIFs that reveal content on hover.",
   "main": "index.js",
   "scripts": {

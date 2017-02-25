@@ -1,8 +1,9 @@
 # Discord Spoiler Bot
 
-A Discord bot that replaces spoiler messages with GIFs that reveal content on hover.
+[![npm](https://img.shields.io/npm/dt/discord-spoiler-bot.svg)](https://www.npmjs.com/package/discord-spoiler-bot)
+![npm dependencies](https://david-dm.org/TimboKZ/discord-spoiler-bot.svg)
 
-> Note: At the moment this bot is not very mobile-friendly.
+A Discord bot that replaces spoiler messages with GIFs that reveal content on hover.
 
 # Demo
 
@@ -27,7 +28,7 @@ Put this into your `index.js`:
 ```javascript
 'use strict';
 
-const SpoilerBot = require('./src/SpoilerBot');
+const SpoilerBot = require('discord-spoiler-bot');
 const token = 'your_secret_token';
 
 let bot = new SpoilerBot({token});
@@ -71,7 +72,7 @@ First of all, you'll need to obtain a secret token for your bot. The steps you n
 ```javascript
 'use strict';
 
-const SpoilerBot = require('./src/SpoilerBot');
+const SpoilerBot = require('discord-spoiler-bot');
 
 let config = {
     token: 'you_secret_token_here',
@@ -133,6 +134,10 @@ let config = {
 # Reporting bugs
 
 Please create an issue thread [here](https://github.com/TimboKZ/discord-spoiler-bot/issues). I will try to reply and resolve issues to the best of my ability.
+
+### Known issues
+
+* It's been reported that GIFs play continuously on mobile devices instead of stopping after revealing the spoiler. Sadly this is a limitation of the mobile Discord app and I can't do anything about it.
 
 # Contributing
 
