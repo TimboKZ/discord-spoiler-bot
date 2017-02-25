@@ -39,7 +39,7 @@ class SpoilerBot {
     /**
      * @param {Object} config
      * @param {string} config.token
-     * @param {number} config.maxLines
+     * @param {number} [config.maxLines]
      * @param {string[]} [config.include]
      * @param {string[]} [config.exclude]
      * @param {extractSpoiler} [config.extractSpoiler]
@@ -48,13 +48,13 @@ class SpoilerBot {
         if (!config || !config.token) {
             throw new Error('No bot token has been specified!');
         }
-        if (config.maxLines && (typeof config.maxLines !== 'number' || config.maxLines < 1)) {
+        if (config.maxLines !== undefined && (typeof config.maxLines !== 'number' || config.maxLines < 1)) {
             throw new Error('`maxLines` should be an integer greater than zero!');
         }
-        if (config.include && config.exclude) {
+        if (config.include !== undefined && config.exclude !== undefined) {
             throw new Error('You can\'t specify both included and excluded channels - choose one.');
         }
-        if (config.extractSpoiler && typeof config.extractSpoiler !== 'function') {
+        if (config.extractSpoiler !== undefined && typeof config.extractSpoiler !== 'function') {
             throw new Error('`extractFunction` must be a function!');
         }
         this.config = config;
@@ -63,7 +63,7 @@ class SpoilerBot {
     connect() {
         this.client = new Discord.Client();
         this.client.on('message', this.processMessage.bind(this));
-        this.client.login(this.config.token);
+        this.client.login(this.config.token).then(() => console.log('Discord Spoiler Bot is running...'));
     }
 
     /**

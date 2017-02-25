@@ -91,7 +91,44 @@ Now you should be able to send messages of the format `<topic>:spoiler:<content>
 
 # Advanced configuration
 
-> This section is still incomplete.
+As seen above, you have to create a config to initialise `SpoilerBot`. Below you can find the config properties you can set.
+
+| Property               | Default value | Description                                                                                                                                                                                                                |
+|------------------------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `token` **[required]** | None          | Secret token of your Discord bot                                                                                                                                                                                           |
+| `maxLines`             | 6             | Maximum amount of lines that spoiler content can span over.                                                                                                                                                                |
+| `include`              | None          | Array of strings, where each string represents an ID of a channel. When this property is set, bot will only listen to the specified channels. Cannot be used together with `exclude`.                                      |
+| `exclude`              | None          | Array of strings, where each string represents an ID of a channel. When this property is set, bot will listen to all channels but the one specified in this array. Cannot be used together with `include`.                 |
+| `extractSpoiler`       | None          | Function that takes a [Discord.js `Message`](https://discord.js.org/#/docs/main/stable/class/Message) object and returns a `Spoiler` object if the message contains a spoiler or `null` if it does not. See example below. |
+
+### Config example
+
+Here's a sample config with some comments:
+
+```javascript
+let config = {
+    token: 'you_secret_token_here',
+    
+    // Allow 20 lines in a spoiler, results in some big GIFs
+    maxLines: 20,
+    
+    // Only listen to 2 specific channels
+    include: [
+        '241271400869003265',
+        '241512070854606848'
+    ],
+    
+    // Mark messages that begin with `spoiler:` as spoilers.
+    // Sets `Some Topic` as the topic for all spoilers and
+    // passes original message content as spoiler content.
+    extractSpoiler: (message) => {
+        if (!message.content.match(/^spoiler:/gi)) {
+            return null;
+        }
+        return new SpoilerBot.Spoiler(message.author, 'Some Topic', message.content);
+    }
+};
+```
 
 # Reporting bugs
 
