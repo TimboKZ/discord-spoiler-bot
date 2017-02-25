@@ -23,7 +23,7 @@ Add `discord-spoiler-bot` to your NPM project:
 $ npm install discord-spoiler-bot --save
 ```
 
-Put this into your `index.js`:
+This bot uses `node-canvas` so make sure to [install its prerequisites](https://github.com/Automattic/node-canvas#installation). Then, put this into your `index.js`:
 
 ```javascript
 'use strict';
@@ -49,7 +49,7 @@ FMA:spoiler:Elric brothers are alchemists!
 
 # Installation
 
-Make sure you have [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) installed. This bot was test with Node v6+ so if you experience any issues, try upgrading your Node.js.
+Make sure you have [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) installed. This bot was tested with Node v6+ so if you experience any issues, try upgrading your Node.js.
 
 First, you'll have to create a npm project and customise details as appropriate:
 
@@ -138,6 +138,7 @@ Please create an issue thread [here](https://github.com/TimboKZ/discord-spoiler-
 ### Known issues
 
 * It's been reported that GIFs play continuously on mobile devices instead of stopping after revealing the spoiler. Sadly this is a limitation of the mobile Discord app and I can't do anything about it.
+* On Windows, `node-canvas` library does not support true type fonts so Discord Spoiler Bot uses the default `node-canvas` font instead of Source Sans Pro Regular. 
 
 # Contributing
 
