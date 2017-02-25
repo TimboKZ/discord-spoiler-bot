@@ -4,7 +4,7 @@ node_js:
 os:
   - linux
 install:
-  - sudo yum install cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm pangomm-devel giflib-devel
+  - sudo apt-get install libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential g++
   - npm install
 cache:
   directories:
