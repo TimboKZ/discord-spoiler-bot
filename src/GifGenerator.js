@@ -109,8 +109,9 @@ class GifGenerator {
     static prepareEncoder(height, filePath, done) {
         let encoder = new GIFEncoder(GIF_WIDTH, height);
         let readStream = encoder.createReadStream();
-        readStream.pipe(fs.createWriteStream(filePath));
-        readStream.on('end', () => done(filePath));
+        let writeStream = fs.createWriteStream(filePath);
+        readStream.pipe(writeStream);
+        writeStream.on('close', () => done(filePath));
         encoder.start();
         encoder.setRepeat(-1);
         encoder.setDelay(500);
