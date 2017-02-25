@@ -12,6 +12,11 @@ const path = require('path');
 const Canvas = require('canvas');
 const GIFEncoder = require('gifencoder');
 
+const GIF_WIDTH = 400;
+const MARGIN = 10;
+const LINE_WIDTH = GIF_WIDTH - MARGIN * 2;
+const LINE_HEIGHT = 40;
+const MAX_LINES = 6;
 const SPOILER_MESSAGE = 'Hover to reveal spoiler';
 const GIF_PATH = path.join(__dirname, '..', 'gifs');
 const FONT_PATH = path.join(__dirname, '..', 'fonts');
@@ -43,26 +48,62 @@ class GifGenerator {
      * @param {done} done
      */
     static createGif(spoiler, filePath, done) {
-        let width = 400;
-        let height = 50;
-        let encoder = GifGenerator.prepareEncoder(width, height, filePath, done);
-        let context = GifGenerator.createCanvasContext(width, height);
-        GifGenerator.renderTextToContext(context, width, height, SPOILER_MESSAGE);
+        let context = GifGenerator.createCanvasContext(15);
+        let lines = GifGenerator.breakIntoLines(spoiler.content, context);
+        console.log(lines);
+        let height = (lines.length + 0.5) * LINE_HEIGHT / 2;
+        context = GifGenerator.createCanvasContext(height);
+        let encoder = GifGenerator.prepareEncoder(height, filePath, done);
+        GifGenerator.clearContextBackground(context, height);
+        GifGenerator.renderTextToContext(context, LINE_HEIGHT / 2, SPOILER_MESSAGE);
         encoder.addFrame(context);
-        GifGenerator.renderTextToContext(context, width, height, spoiler.content);
+        GifGenerator.clearContextBackground(context, height);
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            let marginTop = LINE_HEIGHT / 2 * (i + 1);
+            GifGenerator.renderTextToContext(context, marginTop, line);
+        }
         encoder.addFrame(context);
         encoder.finish();
     }
 
     /**
-     * @param {number} width
+     * @param {string} text
+     * @param {Context2d} context
+     * @return {string[]}
+     */
+    static breakIntoLines(text, context) {
+        let words = text.split(' ');
+        let lines = [];
+        let line = '';
+        for (let i = 0; i < words.length; i++) {
+            if (line !== '') line += ' ';
+            let word = words[i];
+            let max = Math.max(context.measureText(line).width, context.measureText(line + word).width);
+            if (max > LINE_WIDTH) {
+                lines.push(line);
+                line = '';
+            }
+            line += word;
+        }
+        if(line !== '' || lines.length === 0) {
+            lines.push(line);
+        }
+        if(lines.length > MAX_LINES) {
+            lines = lines.slice(0, MAX_LINES);
+            lines[lines.length - 1] += '...';
+        }
+        return lines;
+    }
+
+    /**
      * @param {number} height
      * @param {string} filePath
      * @param {done} done
      * @return {GIFEncoder}
      */
-    static prepareEncoder(width, height, filePath, done) {
-        let encoder = new GIFEncoder(width, height);
+    static prepareEncoder(height, filePath, done) {
+        let encoder = new GIFEncoder(GIF_WIDTH, height);
         let readStream = encoder.createReadStream();
         readStream.pipe(fs.createWriteStream(filePath));
         readStream.on('end', () => done(filePath));
@@ -74,31 +115,32 @@ class GifGenerator {
     }
 
     /**
-     * @param {number} width
      * @param {number} height
      * @return {Context2d}
      */
-    static createCanvasContext(width, height) {
-        let canvas = new Canvas(width, height);
+    static createCanvasContext(height) {
+        let canvas = new Canvas(GIF_WIDTH, height);
         let context = canvas.getContext('2d');
         context.addFont(SOURCE_SANS_PRO);
-        context.font = '18px aSourceSansPro';
+        context.font = '13px aSourceSansPro';
         return context;
+    }
+
+    static clearContextBackground(context, height) {
+        context.fillStyle = '#3c3f44';
+        context.rect(0, 0, GIF_WIDTH, height);
+        context.fill();
     }
 
     /**
      *
      * @param {Context2d} context
-     * @param {number} width
-     * @param {number} height
+     * @param {number} marginTop
      * @param {string} text
      */
-    static renderTextToContext(context, width, height, text) {
-        context.fillStyle = '#36393e';
-        context.rect(0, 0, width, height);
-        context.fill();
+    static renderTextToContext(context, marginTop, text) {
         context.fillStyle = '#c0ba9e';
-        context.fillText(text, 10, 30);
+        context.fillText(text, MARGIN, marginTop);
     }
 
 }

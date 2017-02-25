@@ -102,7 +102,7 @@ class SpoilerBot {
      * @param {SpoilerMessage} spoiler
      */
     printSpoiler(originalMessage, spoiler) {
-        let messageContent = `**${spoiler.topic}** spoiler from <@${spoiler.author.id}>`;
+        let messageContent = `<@${spoiler.author.id}>: **${spoiler.topic}** spoiler`;
         GifGenerator.createSpoilerGif(spoiler, filePath => {
             originalMessage.channel.sendFile(filePath, 'spoiler.gif', messageContent).then(() => {
                 fs.unlink(filePath);
