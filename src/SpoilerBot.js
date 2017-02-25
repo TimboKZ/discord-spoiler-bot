@@ -1,5 +1,6 @@
 /**
  * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
+ * @see https://github.com/TimboKZ/discord-spoiler-bot
  * @copyright 2017
  * @license MIT
  */
@@ -36,9 +37,9 @@ class SpoilerBot {
     /**
      * @param {Object} config
      * @param {string} config.token
-     * @param {string[]} config.include
-     * @param {string[]} config.exclude
-     * @param {extractSpoiler} config.extractSpoiler
+     * @param {string[]} [config.include]
+     * @param {string[]} [config.exclude]
+     * @param {extractSpoiler} [config.extractSpoiler]
      */
     constructor(config) {
         if (!config || !config.token) {
