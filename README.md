@@ -41,6 +41,12 @@ Run the bot:
 $ node index.js
 ```
 
+To create hidden spoilers, send a message of the following format: `<topic>:spoiler:<content>`, e.g.:
+
+```
+FMA:spoiler:Elric brothers are alchemists!
+```
+
 # Installation
 
 Make sure you have [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) installed. This bot was test with Node v6+ so if you experience any issues, try upgrading your Node.js.
@@ -57,12 +63,6 @@ Then, you'll need to install `discord-spoiler-bot` and save it as a dependency:
 
 ```shell
 $ npm install discord-spoiler-bot --save
-```
-
-To create spoilers, send a message of the following format: `<topic>:spoiler:<content>`, e.g.:
-
-```
-FMA:spoiler:Elric brothers are alchemists!
 ```
 
 # Basic usage
