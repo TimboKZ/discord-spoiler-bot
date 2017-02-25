@@ -4,7 +4,15 @@ A Discord bot that replaces spoiler messages with GIFs that reveal content on ho
 
 > Note: At the moment this bot is not very mobile-friendly.
 
-![Discord Spoiler Bot in action](https://foxypanda-ghost.s3.amazonaws.com/2017/Feb/ComplicatedOrneryCrow-1487984793950.gif)
+## Demo
+
+### Single line
+
+![Discord Spoiler Bot in action](https://foxypanda-ghost.s3.amazonaws.com/2017/Feb/Spoiler_Bot_One_Line-1487990846207.gif)
+
+### Multi-line
+
+![Discord Spoiler Bot with multi-line comments](https://foxypanda-ghost.s3.amazonaws.com/2017/Feb/Spoiler_Bot_Multiple_Lines-1487991244852.gif)
 
 ## Quick start
 
