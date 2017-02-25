@@ -160,7 +160,8 @@ class GifGenerator {
         if(SOURCE_SANS_PRO !== null) {
             context.addFont(SOURCE_SANS_PRO);
         }
-        context.font = '13px aSourceSansPro';
+        let fontName = SOURCE_SANS_PRO !== null ? 'aSourceSansPro' : '"Lucida Sans Unicode"';
+        context.font = `13px ${fontName}`;
         return context;
     }
 
