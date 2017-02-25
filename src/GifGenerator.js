@@ -21,24 +21,31 @@ const SOURCE_SANS_PRO = new Canvas.Font('SourceSansPro', path.join(FONT_PATH, 'S
 class GifGenerator {
 
     /**
+     * @callback done
+     * @param {string} filePath
+     */
+
+    /**
      * @param {SpoilerMessage} spoiler
+     * @param {done} done
      * @return {string}
      */
-    static createSpoilerGif(spoiler) {
+    static createSpoilerGif(spoiler, done) {
         let hash = `${spoiler.author.id}-${(new Date()).getTime()}`;
         let gifPath = path.join(GIF_PATH, `${hash}.gif`);
-        GifGenerator.createGif(spoiler, gifPath);
+        GifGenerator.createGif(spoiler, gifPath, done);
         return gifPath;
     }
 
     /**
      * @param {SpoilerMessage} spoiler
      * @param {string} filePath
+     * @param {done} done
      */
-    static createGif(spoiler, filePath) {
+    static createGif(spoiler, filePath, done) {
         let width = 400;
         let height = 50;
-        let encoder = GifGenerator.prepareEncoder(width, height, filePath);
+        let encoder = GifGenerator.prepareEncoder(width, height, filePath, done);
         let context = GifGenerator.createCanvasContext(width, height);
         GifGenerator.renderTextToContext(context, width, height, SPOILER_MESSAGE);
         encoder.addFrame(context);
@@ -51,11 +58,14 @@ class GifGenerator {
      * @param {number} width
      * @param {number} height
      * @param {string} filePath
+     * @param {done} done
      * @return {GIFEncoder}
      */
-    static prepareEncoder(width, height, filePath) {
+    static prepareEncoder(width, height, filePath, done) {
         let encoder = new GIFEncoder(width, height);
-        encoder.createReadStream().pipe(fs.createWriteStream(filePath));
+        let readStream = encoder.createReadStream();
+        readStream.pipe(fs.createWriteStream(filePath));
+        readStream.on('end', () => done(filePath));
         encoder.start();
         encoder.setRepeat(-1);
         encoder.setDelay(500);

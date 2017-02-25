@@ -1,6 +1,9 @@
 # JetBrains IDE files
 /.idea/
 
+# Local tsting
+/test.js
+
 # Logs
 logs
 *.log

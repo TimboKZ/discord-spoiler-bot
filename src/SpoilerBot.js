@@ -66,7 +66,7 @@ class SpoilerBot {
     processMessage(message) {
         if (this.checkChannel(message.channel)) {
             let spoiler = this.extractSpoiler(message);
-            if(spoiler) {
+            if (spoiler) {
                 message.delete();
                 this.printSpoiler(message, spoiler);
             }
@@ -103,10 +103,12 @@ class SpoilerBot {
      */
     printSpoiler(originalMessage, spoiler) {
         let messageContent = `**${spoiler.topic}** spoiler from <@${spoiler.author.id}>`;
-        let filePath = GifGenerator.createSpoilerGif(spoiler);
-        originalMessage.channel.sendFile(filePath, 'spoiler.gif', messageContent).then(() => {
-            fs.unlink(filePath);
+        GifGenerator.createSpoilerGif(spoiler, filePath => {
+            originalMessage.channel.sendFile(filePath, 'spoiler.gif', messageContent).then(() => {
+                fs.unlink(filePath);
+            });
         });
+
     }
 
 }
