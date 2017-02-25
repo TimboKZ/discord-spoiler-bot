@@ -141,4 +141,6 @@ Please create an issue thread [here](https://github.com/TimboKZ/discord-spoiler-
 
 # Contributing
 
-I believe this bot is feature-complete, and from now on will most likely only fix bugs. Before adding a new feature to this bot and creating a pull request, make sure said feature makes sense in the context of Discord Spoiler Bot. There are no unit tests at the moment so you will have to test your solution yourself and I will review your code for any issues.
+I believe this bot is feature-complete, and from now on will most likely only fix bugs. Before adding a new feature to this bot and creating a pull request, make sure said feature makes sense in the context of Discord Spoiler Bot.
+
+Make sure `npm test` and `npm run lint` return no errors before making a pull request, otherwise I might reject it.
