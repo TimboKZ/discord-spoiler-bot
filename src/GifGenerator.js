@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const Canvas = require('canvas');
+const Font = Canvas.Font;
 const GIFEncoder = require('gifencoder');
 
 const BACKGROUND_COLOUR = '#3c3f44';
@@ -25,7 +26,7 @@ const SPOILER_MESSAGE = '( Hover to reveal spoiler )';
 
 const GIF_PATH = path.join(__dirname, '..', 'gifs');
 const FONT_PATH = path.join(__dirname, '..', 'fonts');
-const SOURCE_SANS_PRO = new Canvas.Font('SourceSansPro', path.join(FONT_PATH, 'SourceSansPro-Regular.ttf'));
+const SOURCE_SANS_PRO = Font ? new Font('SourceSansPro', path.join(FONT_PATH, 'SourceSansPro-Regular.ttf')) : null;
 
 class GifGenerator {
 
@@ -156,7 +157,9 @@ class GifGenerator {
     static createCanvasContext(height) {
         let canvas = new Canvas(GIF_WIDTH, height);
         let context = canvas.getContext('2d');
-        context.addFont(SOURCE_SANS_PRO);
+        if(SOURCE_SANS_PRO !== null) {
+            context.addFont(SOURCE_SANS_PRO);
+        }
         context.font = '13px aSourceSansPro';
         return context;
     }
