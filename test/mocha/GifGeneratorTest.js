@@ -7,8 +7,8 @@
 
 'use strict';
 
-const GifGenerator = require('./../src/GifGenerator');
-const SpoilerBot = require('./../src/SpoilerBot');
+const GifGenerator = require('./../../src/GifGenerator');
+const SpoilerBot = require('./../../src/SpoilerBot');
 const {describe, it} = require('mocha');
 const assert = require('chai').assert;
 const fs = require('fs');

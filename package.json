@@ -1,10 +1,10 @@
 {
   "name": "discord-spoiler-bot",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "A bot for Discord that replaces spoiler messages with GIFs that reveal content on hover.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive ./test/",
+    "test": "mocha --recursive ./test/mocha/",
     "lint": "eslint ./src/ ./test/"
   },
   "repository": {
@@ -30,6 +30,7 @@
   "homepage": "https://github.com/TimboKZ/discord-spoiler-bot#readme",
   "dependencies": {
     "canvas": "^1.6.3",
+    "discord.io": "^2.4.2",
     "discord.js": "^11.0.0",
     "gifencoder": "^1.0.6"
   },

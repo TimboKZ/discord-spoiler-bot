@@ -1,6 +1,6 @@
 /**
  * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
- * @see https://github.com/TimboKZ/discord-spoiler-bot
+ * @see https://github.com/TimboKZ/discord-spoiler-bot/wiki
  * @copyright 2017
  * @license MIT
  */
@@ -42,7 +42,7 @@ class GifGenerator {
      * @return {string}
      */
     static createSpoilerGif(spoiler, maxLines, done) {
-        let hash = `${spoiler.author.id}-${(new Date()).getTime()}`;
+        let hash = `${spoiler.authorId}-${(new Date()).getTime()}`;
         let gifPath = path.join(GIF_PATH, `${hash}.gif`);
         GifGenerator.createGif(spoiler, maxLines, gifPath, done);
         return gifPath;
@@ -160,7 +160,8 @@ class GifGenerator {
         if(SOURCE_SANS_PRO !== null) {
             context.addFont(SOURCE_SANS_PRO);
         }
-        context.font = '13px aSourceSansPro';
+        let fontName = SOURCE_SANS_PRO !== null ? 'aSourceSansPro' : '"Lucida Sans Unicode"';
+        context.font = `13px ${fontName}`;
         return context;
     }
 
