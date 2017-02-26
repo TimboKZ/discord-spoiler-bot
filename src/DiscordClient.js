@@ -92,6 +92,26 @@ class DiscordClient {
     }
 
     /**
+     * @param {string} channelId
+     * @param {string} messageId
+     * @param {messageListener} callback
+     */
+    fetchMessage(channelId, messageId, callback) {
+        if (this.type === DISCORD_JS) {
+            this.client.channels.get(channelId).fetchMessage(messageId).then((message) => {
+                callback(new DiscordMessage(message.id, message.channel.id, message.author.id, message.content));
+            });
+        } else {
+            this.client.getMessage({
+                channelID: channelId,
+                messageID: messageId
+            }, (error, message) => {
+                callback(new DiscordMessage(message.id, message.channel_id, message.author.id, message.content));
+            });
+        }
+    }
+
+    /**
      * @param {DiscordMessage} message
      * @param {function} done
      */
@@ -104,8 +124,50 @@ class DiscordClient {
         } else {
             this.client.deleteMessage({
                 channelID: message.channelId,
-                messageIDs: message.id
+                messageID: message.id
             }, done);
+        }
+    }
+
+    /**
+     * @param {string} channelId
+     * @param {string} userId
+     * @param {string[]} roleIds
+     * @param {markCallback} callback
+     */
+    hasRoles(channelId, userId, roleIds, callback) {
+        let roles = null;
+        if (this.type === DISCORD_JS) {
+            let channel = this.client.channels.get(channelId);
+            roles = channel.guild.members.get(userId).roles.keyArray();
+        } else {
+            let guildId = this.client.channels[channelID].guild_id;
+            roles = this.client.servers[guildId].members[userId].roles;
+        }
+        let result = false;
+        for (let i = 0; i < roles.length; i++) {
+            if (roleIds.indexOf(roles[i]) !== -1) {
+                result = true;
+                break;
+            }
+        }
+        callback(result);
+    }
+
+    /**
+     * @param {string} channelId
+     * @param {string} content
+     * @param {function} done
+     */
+    sendMessage(channelId, content, done) {
+        if (this.type === DISCORD_JS) {
+            this.client.channels.get(channelId).send(content).then(() => done());
+        } else {
+            let options = {
+                to: channelId,
+                message: content,
+            };
+            this.client.sendMessage(options, done);
         }
     }
 

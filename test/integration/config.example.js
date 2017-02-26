@@ -8,6 +8,7 @@ module.exports = {
     token: 'your_bot_token_here',
     maxLines: 6,
     exclude: [],
+
     extractSpoiler: (message) => {
         if (!message.content.match(/^spoiler:/gi)) {
             return null;

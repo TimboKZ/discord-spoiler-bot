@@ -40,8 +40,11 @@ class SpoilerBot {
 
     /**
      * @param {Object} config
-     * @param {DiscordJS.Client|DiscordIO.Client} [config.client]
      * @param {string} [config.token]
+     * @param {DiscordJS.Client|DiscordIO.Client} [config.client]
+     * @param {boolean} [config.markAllowAll]
+     * @param {string[]} [config.markRoleIds]
+     * @param {string[]} [config.markUserIds]
      * @param {number} [config.maxLines]
      * @param {string[]} [config.include]
      * @param {string[]} [config.exclude]
@@ -86,12 +89,22 @@ class SpoilerBot {
      */
     processMessage(message) {
         if (this.checkChannel(message.channelId)) {
-            let spoiler = this.extractSpoiler(message);
-            if (spoiler) {
-                this.client.deleteMessage(spoiler.message, () => {
-                    this.printSpoiler(message, spoiler);
-                });
-            }
+            this.extractSpoiler(
+                message,
+                this.client.fetchMessage.bind(this.client),
+                this.checkMarkPermission.bind(this),
+                (error, spoiler) => {
+                    if (error) {
+                        this.printError(message, error);
+                    } else if (spoiler) {
+                        this.client.deleteMessage(message, () => {
+                            this.client.deleteMessage(spoiler.message, () => {
+                                this.printSpoiler(message, spoiler);
+                            });
+                        });
+                    }
+                }
+            );
         }
     }
 
@@ -107,16 +120,90 @@ class SpoilerBot {
     }
 
     /**
-     * @param {DiscordMessage} message
-     * @return {Spoiler}
+     * @callback markCallback
+     * @param {boolean} canMark
      */
-    extractSpoiler(message) {
-        if (this.config.extractSpoiler) {
-            return this.config.extractSpoiler(message);
+
+    /**
+     * @param {string} channelId
+     * @param {string} userId
+     * @param {markCallback} callback
+     * @return {boolean}
+     */
+    checkMarkPermission(channelId, userId, callback) {
+        if (this.config.markAllowAll === true) {
+            callback(true);
+        } else if (this.config.markUserIds !== undefined && this.config.markUserIds.indexOf(userId) !== -1) {
+            callback(true);
+        } else if (this.config.markRoleIds !== undefined) {
+            this.client.hasRoles(channelId, userId, this.config.markRoleIds, callback);
+        } else {
+            callback(false);
         }
-        if (!message.content.match(/^.+:spoiler:.+$/)) return null;
-        let parts = message.content.split(':spoiler:');
-        return new Spoiler(message, parts[0], parts[1]);
+    }
+
+    /**
+     * @callback fetchMessageCallback
+     * @param {DiscordMessage} message
+     */
+
+    /**
+     * @callback fetchMessage
+     * @param {string} channelId
+     * @param {string} messageId
+     * @param {fetchMessageCallback} callback
+     * @return {DiscordMessage}
+     */
+
+    /**
+     * @callback checkMarkPermission
+     * @param {string} channelId
+     * @param {string} userId
+     * @param {markCallback} callback
+     */
+
+    /**
+     * @callback spoilerCallback
+     * @param {string|null} error
+     * @param {Spoiler} [spoiler]
+     */
+
+    /**
+     * @param {DiscordMessage} message
+     * @param {fetchMessage} fetchMessage
+     * @param {checkMarkPermission} checkMarkPermission
+     * @param {spoilerCallback} callback
+     */
+    extractSpoiler(message, fetchMessage, checkMarkPermission, callback) {
+        if (this.config.extractSpoiler) {
+            this.config.extractSpoiler(message, fetchMessage, callback);
+        } else if (message.content.match(/^.+:spoiler:.+$/)) {
+            let parts = message.content.split(':spoiler:');
+            callback(null, new Spoiler(message, parts[0], parts[1]));
+        } else if (message.content.match(/^.+:spoils:.+$/)) {
+            let parts = message.content.split(':spoils:');
+            checkMarkPermission(message.channelId, message.authorId, (canMark) => {
+                if (canMark) {
+                    fetchMessage(message.channelId, parts[0], spoilerMessage => {
+                        let topic = parts[1];
+                        callback(null, new Spoiler(spoilerMessage, topic, spoilerMessage.content));
+                    });
+                } else {
+                    callback('You don\'t have permission to mark spoilers.');
+                }
+            });
+        } else {
+            callback(null, null);
+        }
+    }
+
+    /**
+     * @param {DiscordMessage} originalMessage
+     * @param {string} error
+     */
+    printError(originalMessage, error) {
+        let messageContent = `<@${originalMessage.authorId}> ${error}`;
+        this.client.sendMessage(originalMessage.channelId, messageContent, () => null);
     }
 
     /**
@@ -125,7 +212,7 @@ class SpoilerBot {
      */
     printSpoiler(originalMessage, spoiler) {
         let messageContent = `<@${spoiler.message.authorId}>: **${spoiler.topic}** spoiler`;
-        if (originalMessage.authorId !== spoiler.message.authorId) {
+        if (originalMessage.id !== spoiler.message.id) {
             messageContent += ` (marked by <@${originalMessage.authorId}>)`;
         }
         let maxLines = this.config.maxLines ? this.config.maxLines : DEFAULT_MAX_LINES;
