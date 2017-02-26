@@ -41,8 +41,36 @@ class DiscordClient {
             client = new DiscordJS.Client();
             client.login(config.token);
         }
-        this.type = client instanceof DiscordJS.Client ? DISCORD_JS : DISCORD_IO;
+        this.type = DiscordClient.isDiscordJS(client) ? DISCORD_JS : DISCORD_IO;
         this.client = client;
+    }
+
+    /**
+     * @param {Object} client
+     * @return {boolean}
+     */
+    static isDiscordJS(client) {
+        let checks = true;
+        checks = checks && typeof client.connect === 'function';
+        checks = checks && typeof client.disconnect === 'function';
+        checks = checks && typeof client.sendMessage === 'function';
+        checks = checks && typeof client.uploadFile === 'function';
+        checks = checks && typeof client.on === 'function';
+        return checks;
+    }
+
+    /**
+     * @param {Object} client
+     * @return {boolean}
+     */
+    static isDiscordIO(client) {
+        let checks = true;
+        checks = checks && typeof client.fetchUser === 'function';
+        checks = checks && typeof client.login === 'function';
+        checks = checks && typeof client.sweepMessages === 'function';
+        checks = checks && typeof client.syncGuilds === 'function';
+        checks = checks && typeof client.on === 'function';
+        return checks;
     }
 
     /**

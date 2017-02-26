@@ -15,7 +15,7 @@ A Discord bot that replaces spoiler messages with GIFs that reveal content on ho
 
 ![Discord Spoiler Bot with multi-line comments](https://foxypanda-ghost.s3.amazonaws.com/2017/Feb/Spoiler_Bot_Multiple_Lines-1487991244852.gif)
 
-### Marking someone else's message as spoiler
+### Marking someone else's message as a spoiler
 
 ![Discord Spoiler Bot marking other messages as spoilers](https://foxypanda-ghost.s3.amazonaws.com/2017/Feb/Spoiler_Bot_Other_Messages-1488088171731.gif)
 
