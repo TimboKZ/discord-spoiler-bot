@@ -1,6 +1,6 @@
 /**
  * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
- * @see https://github.com/TimboKZ/discord-spoiler-bot
+ * @see https://github.com/TimboKZ/discord-spoiler-bot/wiki
  * @copyright 2017
  * @license MIT
  */
@@ -34,8 +34,10 @@ class SpoilerBot {
 
     /**
      * @callback extractSpoiler
-     * @param {Discord.Message} message
-     * @return {Spoiler}
+     * @param {DiscordMessage} message
+     * @param {fetchMessage} fetchMessage
+     * @param {checkMarkPermission} checkMarkPermission
+     * @param {spoilerCallback} callback
      */
 
     /**

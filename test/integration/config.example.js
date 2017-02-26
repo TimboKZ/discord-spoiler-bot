@@ -6,6 +6,12 @@
 
 module.exports = {
     token: 'your_bot_token_here',
+    markUserIds: [
+        '242276581039538178'
+    ],
+    markRoleIds: [
+        '285235614805262339',
+    ],
     maxLines: 6,
     exclude: [],
 
