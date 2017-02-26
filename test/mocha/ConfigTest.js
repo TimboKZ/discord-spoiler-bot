@@ -7,7 +7,7 @@
 
 'use strict';
 
-const SpoilerBot = require('./../src/SpoilerBot');
+const SpoilerBot = require('./../../src/SpoilerBot');
 const {describe, it} = require('mocha');
 const assert = require('chai').assert;
 

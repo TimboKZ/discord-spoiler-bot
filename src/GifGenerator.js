@@ -42,7 +42,7 @@ class GifGenerator {
      * @return {string}
      */
     static createSpoilerGif(spoiler, maxLines, done) {
-        let hash = `${spoiler.author.id}-${(new Date()).getTime()}`;
+        let hash = `${spoiler.authorId}-${(new Date()).getTime()}`;
         let gifPath = path.join(GIF_PATH, `${hash}.gif`);
         GifGenerator.createGif(spoiler, maxLines, gifPath, done);
         return gifPath;

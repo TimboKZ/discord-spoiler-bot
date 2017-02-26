@@ -1,8 +1,8 @@
 # JetBrains IDE files
 /.idea/
 
-# Local tsting
-/test.js
+# Local testing
+/test/integration/config.js
 
 # Logs
 logs
