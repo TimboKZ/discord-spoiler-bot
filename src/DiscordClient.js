@@ -51,10 +51,10 @@ class DiscordClient {
      */
     static isDiscordJS(client) {
         let checks = true;
-        checks = checks && typeof client.connect === 'function';
-        checks = checks && typeof client.disconnect === 'function';
-        checks = checks && typeof client.sendMessage === 'function';
-        checks = checks && typeof client.uploadFile === 'function';
+        checks = checks && typeof client.fetchUser === 'function';
+        checks = checks && typeof client.login === 'function';
+        checks = checks && typeof client.sweepMessages === 'function';
+        checks = checks && typeof client.syncGuilds === 'function';
         checks = checks && typeof client.on === 'function';
         return checks;
     }
@@ -65,10 +65,10 @@ class DiscordClient {
      */
     static isDiscordIO(client) {
         let checks = true;
-        checks = checks && typeof client.fetchUser === 'function';
-        checks = checks && typeof client.login === 'function';
-        checks = checks && typeof client.sweepMessages === 'function';
-        checks = checks && typeof client.syncGuilds === 'function';
+        checks = checks && typeof client.connect === 'function';
+        checks = checks && typeof client.disconnect === 'function';
+        checks = checks && typeof client.sendMessage === 'function';
+        checks = checks && typeof client.uploadFile === 'function';
         checks = checks && typeof client.on === 'function';
         return checks;
     }

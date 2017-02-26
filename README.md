@@ -60,6 +60,8 @@ FMA:spoiler:Elric brothers are alchemists!
 
 To mark someone else's messages, use `<message-id>:spoils:<topic>`, but you will have to configure permissions first. See [Configuration](https://github.com/TimboKZ/discord-spoiler-bot/wiki/Configuration) section.
 
+Already have a bot running on [discord.js](https://github.com/hydrabolt/discord.js/) or [discord.io](https://github.com/izy521/discord.io)? You can supply an instance of `Client` instead of a token, see [Usage](https://github.com/TimboKZ/discord-spoiler-bot/wiki/Usage) section for examples.
+
 # Reporting bugs
 
 Please create an issue thread [here](https://github.com/TimboKZ/discord-spoiler-bot/issues). I will try to reply and resolve issues to the best of my ability.
