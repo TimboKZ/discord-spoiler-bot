@@ -75,7 +75,6 @@ class DiscordClient {
     }
 
     /**
-     *
      * @param {messageListener} listener
      * @param {string} user
      * @param {string} userID
@@ -142,7 +141,7 @@ class DiscordClient {
             let channel = this.client.channels.get(channelId);
             roles = channel.guild.members.get(userId).roles.keyArray();
         } else {
-            let guildId = this.client.channels[channelID].guild_id;
+            let guildId = this.client.channels[channelId].guild_id;
             roles = this.client.servers[guildId].members[userId].roles;
         }
         let result = false;
