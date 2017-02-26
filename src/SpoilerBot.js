@@ -64,9 +64,9 @@ class SpoilerBot {
         }
         if (
             config.client !== undefined
-            && !(config.client instanceof DiscordJS.Client || config.client instanceof DiscordIO.Client)
+            && !(DiscordClient.isDiscordJS(config.client) || DiscordClient.isDiscordIO(config.client))
         ) {
-            throw new Error('`client` must be an instance of Discord.js or discord.io client!');
+            throw new Error('`client` must be an instance of discord.js or discord.io client!');
         }
         if (config.maxLines !== undefined && (typeof config.maxLines !== 'number' || config.maxLines < 1)) {
             throw new Error('`maxLines` should be an integer greater than zero!');
