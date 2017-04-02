@@ -4,6 +4,8 @@
  * @license MIT
  */
 
+const SpoilerBot = require('../../src/SpoilerBot');
+
 module.exports = {
     token: 'your_bot_token_here',
     markUserIds: [

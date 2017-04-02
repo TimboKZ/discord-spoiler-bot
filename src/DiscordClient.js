@@ -6,7 +6,6 @@
  */
 
 const DiscordJS = require('discord.js');
-const DiscordIO = require('discord.io');
 
 const DISCORD_JS = 'discord.js';
 const DISCORD_IO = 'discord.io';
