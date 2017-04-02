@@ -1,5 +1,6 @@
 # Discord Spoiler Bot
 
+[![npm](https://img.shields.io/npm/v/discord-spoiler-bot.svg)](https://www.npmjs.com/package/discord-spoiler-bot)
 [![npm](https://img.shields.io/npm/dt/discord-spoiler-bot.svg)](https://www.npmjs.com/package/discord-spoiler-bot)
 ![npm dependencies](https://david-dm.org/TimboKZ/discord-spoiler-bot.svg)
 

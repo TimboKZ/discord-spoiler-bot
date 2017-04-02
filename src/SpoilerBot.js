@@ -8,8 +8,6 @@
 'use strict';
 
 const fs = require('fs');
-const DiscordJS = require('discord.js');
-const DiscordIO = require('discord.io');
 const DiscordClient = require('./DiscordClient');
 const GifGenerator = require('./GifGenerator');
 
