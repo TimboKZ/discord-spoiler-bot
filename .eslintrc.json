@@ -8,6 +8,7 @@
         "sourceType": "module"
     },
     "rules": {
+        "eol-last": 1,
         "indent": [
             "error",
             4
