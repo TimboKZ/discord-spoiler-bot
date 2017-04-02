@@ -75,4 +75,4 @@ Please create an issue thread [here](https://github.com/TimboKZ/discord-spoiler-
 
 I believe this bot is feature-complete, and from now on will most likely only fix bugs. Before adding a new feature to this bot and creating a pull request, make sure said feature makes sense in the context of Discord Spoiler Bot.
 
-Make sure `npm test` and `npm run lint` return no errors before making a pull request, otherwise I might reject it.
+Make sure `npm test` and `npm run lint` return no errors before making a pull request, otherwise I might reject it. `npm run test-no-delete` is available for your convenience, running this command will make sure that GIFs produced during testing are not removed so you can inspect them for any artifacts.
