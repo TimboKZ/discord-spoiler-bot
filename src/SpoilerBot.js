@@ -220,7 +220,7 @@ class SpoilerBot {
         let maxLines = this.config.maxLines ? this.config.maxLines : DEFAULT_MAX_LINES;
         GifGenerator.createSpoilerGif(spoiler, maxLines, filePath => {
             this.client.sendFile(spoiler.message.channelId, filePath, 'spoiler.gif', messageContent, () => {
-                fs.unlink(filePath);
+                fs.unlink(filePath, (err) => err ? console.error(`Could not remove GIF: ${err}`) : null);
             });
         });
     }
