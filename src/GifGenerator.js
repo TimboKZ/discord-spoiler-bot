@@ -81,21 +81,25 @@ class GifGenerator {
      * @return {string[]}
      */
     static breakIntoLines(text, context, maxLines) {
-        let words = text.split(' ');
         let lines = [];
-        let line = '';
-        for (let i = 0; i < words.length; i++) {
-            if (line !== '') line += ' ';
-            let word = words[i];
-            let max = Math.max(context.measureText(line).width, context.measureText(line + word).width);
-            if (max > LINE_WIDTH) {
-                lines.push(line);
-                line = '';
+        let linesBreak = text.split('\n');
+        for (let j = 0; j < linesBreak.length; j++) {
+            let line = '';
+            let words = linesBreak[j].split(' ');
+            for (let i = 0; i < words.length; i++) {
+                if (line !== '') line += ' ';
+                let word = words[i];
+                let max = Math.max(context.measureText(line).width, context.measureText(line + word).width);
+                if (max > LINE_WIDTH) {
+                    lines.push(line);
+                    line = '';
+                }
+                line += word;
             }
-            line += word;
-        }
-        if(line !== '' || lines.length === 0) {
-            lines.push(line);
+            if(line !== '' || lines.length === 0) {
+                lines.push(line);
+            }
+
         }
         if(lines.length > maxLines) {
             lines = lines.slice(0, maxLines);
