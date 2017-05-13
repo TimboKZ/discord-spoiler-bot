@@ -1,6 +1,9 @@
 # JetBrains IDE files
 /.idea/
 
+# Packages
+/*.tgz
+
 # Local testing
 /test/integration/config.js
 
