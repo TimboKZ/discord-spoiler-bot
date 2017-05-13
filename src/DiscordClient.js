@@ -207,7 +207,14 @@ class DiscordClient {
      */
     sendFile(channelId, filePath, fileName, content, done) {
         if (this.type === DISCORD_JS) {
-            this.client.channels.get(channelId).sendFile(filePath, fileName, content).then(() => done());
+            let channel = this.client.channels.get(channelId);
+            let options = {
+                files: [{
+                    attachment: filePath,
+                    name: fileName,
+                }],
+            };
+            channel.send(content, options).then(() => done());
         } else {
             let options = {
                 to: channelId,
