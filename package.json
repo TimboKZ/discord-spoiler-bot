@@ -32,7 +32,7 @@
   "dependencies": {
     "canvas": "^1.6.3",
     "discord.io": "^2.4.2",
-    "discord.js": "^11.0.0",
+    "discord.js": "^11.1.0",
     "gifencoder": "^1.0.6"
   },
   "devDependencies": {
