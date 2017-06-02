@@ -14,9 +14,11 @@ const {describe, it} = require('mocha');
 const GifGenerator = require('./../../src/GifGenerator');
 const SpoilerBot = require('./../../src/SpoilerBot');
 
+const defaultGifGen = new GifGenerator();
+
 const createGif = (content, done) => {
     let spoiler = new SpoilerBot.Spoiler({id: 'test'}, 'Test Topic', content);
-    GifGenerator.createSpoilerGif(spoiler, 6, (filePath) => {
+    defaultGifGen.createSpoilerGif(spoiler, 6, (filePath) => {
         assert.isTrue(fs.existsSync(filePath));
         if (!process.env.NO_DELETE) {
             fs.unlink(filePath, (err) => err ? console.error(`Could not remove GIF: ${err}`) : null);
@@ -25,9 +27,9 @@ const createGif = (content, done) => {
     });
 };
 
-const context = GifGenerator.createCanvasContext(15);
+const context = defaultGifGen.createCanvasContext(15);
 const countLines = (content, lineCount) => {
-    let lines = GifGenerator.breakIntoLines(content, context, lineCount);
+    let lines = defaultGifGen.breakIntoLines(content, context, lineCount);
     assert.strictEqual(lines.length, lineCount);
 };
 

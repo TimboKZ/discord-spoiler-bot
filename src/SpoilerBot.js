@@ -49,6 +49,7 @@ class SpoilerBot {
      * @param {string[]} [config.include]
      * @param {string[]} [config.exclude]
      * @param {extractSpoiler} [config.extractSpoiler]
+     * @param {Object} [config.gif]
      */
     constructor(config) {
         if (!config) {
@@ -76,6 +77,7 @@ class SpoilerBot {
             throw new Error('`extractFunction` must be a function!');
         }
         this.config = config;
+        this.gifGenerator = new GifGenerator(this.config.gif);
     }
 
     connect() {
@@ -176,7 +178,7 @@ class SpoilerBot {
      */
     extractSpoiler(message, fetchMessage, checkMarkPermission, callback) {
         if (this.config.extractSpoiler) {
-            this.config.extractSpoiler(message, fetchMessage, callback);
+            this.config.extractSpoiler(message, fetchMessage, checkMarkPermission, callback);
         } else if (message.content.match(/^.+:spoiler:.+$/)) {
             let parts = message.content.split(':spoiler:');
             callback(null, new Spoiler(message, parts[0], parts[1]));
@@ -216,7 +218,7 @@ class SpoilerBot {
             messageContent += ` (marked by <@${originalMessage.authorId}>)`;
         }
         let maxLines = this.config.maxLines ? this.config.maxLines : DEFAULT_MAX_LINES;
-        GifGenerator.createSpoilerGif(spoiler, maxLines, filePath => {
+        this.gifGenerator.createSpoilerGif(spoiler, maxLines, filePath => {
             this.client.sendFile(spoiler.message.channelId, filePath, 'spoiler.gif', messageContent, () => {
                 fs.unlink(filePath, (err) => err ? console.error(`Could not remove GIF: ${err}`) : null);
             });

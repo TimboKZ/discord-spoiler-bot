@@ -214,7 +214,9 @@ class DiscordClient {
                     name: fileName,
                 }],
             };
-            channel.send(content, options).then(() => done());
+            channel.send(content, options)
+                .then(() => done())
+                .catch(error => console.log(`Error sending file: ${error}`));
         } else {
             let options = {
                 to: channelId,

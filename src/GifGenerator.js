@@ -13,22 +13,43 @@ const Canvas = require('canvas');
 const Font = Canvas.Font;
 const GIFEncoder = require('gifencoder');
 
-const BACKGROUND_COLOUR = '#3c3f44';
-const STROKE_COLOUR = '#b2ac94';
-const TEXT_COLOUR = '#c0ba9e';
-const SPOILER_MESSAGE_COLOUR = '#8c8775';
-
-const MARGIN = 10;
-const GIF_WIDTH = 400;
-const LINE_HEIGHT = 40;
-const LINE_WIDTH = GIF_WIDTH - MARGIN * 2;
-const SPOILER_MESSAGE = '( Hover to reveal spoiler )';
-
 const GIF_PATH = path.join(__dirname, '..', 'gifs');
 const FONT_PATH = path.join(__dirname, '..', 'fonts');
 const SOURCE_SANS_PRO = Font ? new Font('SourceSansPro', path.join(FONT_PATH, 'SourceSansPro-Regular.ttf')) : null;
 
 class GifGenerator {
+
+    constructor(gifConfig) {
+        if (!gifConfig) gifConfig = {};
+        if (!gifConfig.colours) {
+            if(gifConfig.colors) {
+                gifConfig.colours = gifConfig.colors;
+                delete gifConfig.colors;
+            } else {
+                gifConfig.colours = {};
+            }
+        }
+        /**
+         * @type {{margin: number, width: number, lineHeight: number, placeholderText: string, fontSize: string}}
+         */
+        this.config = Object.assign({
+            margin: 10,
+            width: 400,
+            lineHeight: 40,
+            placeholderText: '( Hover to reveal spoiler )',
+            fontSize: '13px',
+        }, gifConfig);
+        /**
+         * @type {{background: string, stroke: string, text: string, placeholder: string}}
+         */
+        this.config.colours = Object.assign({
+            background: '#3c3f44',
+            stroke: '#b2ac94',
+            text: '#c0ba9e',
+            placeholder: '#8c8775',
+        }, gifConfig.colours);
+        this.config.lineWidth = this.config.width - this.config.margin * 2;
+    }
 
     /**
      * @callback done
@@ -41,10 +62,10 @@ class GifGenerator {
      * @param {done} done
      * @return {string}
      */
-    static createSpoilerGif(spoiler, maxLines, done) {
-        let hash = `${spoiler.authorId}-${(new Date()).getTime()}`;
+    createSpoilerGif(spoiler, maxLines, done) {
+        let hash = `${spoiler.message.id}-${(new Date()).getTime()}`;
         let gifPath = path.join(GIF_PATH, `${hash}.gif`);
-        GifGenerator.createGif(spoiler, maxLines, gifPath, done);
+        this.createGif(spoiler, maxLines, gifPath, done);
         return gifPath;
     }
 
@@ -54,13 +75,13 @@ class GifGenerator {
      * @param {string} filePath
      * @param {done} done
      */
-    static createGif(spoiler, maxLines, filePath, done) {
-        let lines = GifGenerator.prepareLines(spoiler, maxLines);
-        let height = (lines.length + 0.5) * LINE_HEIGHT / 2;
-        let context = GifGenerator.createCanvasContext(height);
-        let encoder = GifGenerator.prepareEncoder(height, filePath, done);
-        GifGenerator.renderSpoilerMessage(context, encoder, height);
-        GifGenerator.renderLines(context, encoder, height, lines);
+    createGif(spoiler, maxLines, filePath, done) {
+        let lines = this.prepareLines(spoiler, maxLines);
+        let height = (lines.length + 0.5) * this.config.lineHeight / 2;
+        let context = this.createCanvasContext(height);
+        let encoder = this.prepareEncoder(height, filePath, done);
+        this.renderSpoilerMessage(context, encoder, height);
+        this.renderLines(context, encoder, height, lines);
         encoder.finish();
     }
 
@@ -69,9 +90,9 @@ class GifGenerator {
      * @param {number} maxLines
      * @return {string[]}
      */
-    static prepareLines(spoiler, maxLines) {
-        let context = GifGenerator.createCanvasContext(15);
-        return GifGenerator.breakIntoLines(spoiler.content, context, maxLines);
+    prepareLines(spoiler, maxLines) {
+        let context = this.createCanvasContext(15);
+        return this.breakIntoLines(spoiler.content, context, maxLines);
     }
 
     /**
@@ -80,7 +101,7 @@ class GifGenerator {
      * @param {number} maxLines
      * @return {string[]}
      */
-    static breakIntoLines(text, context, maxLines) {
+    breakIntoLines(text, context, maxLines) {
         let lines = [];
         let linesBreak = text.split('\n');
         for (let j = 0; j < linesBreak.length; j++) {
@@ -90,18 +111,18 @@ class GifGenerator {
                 if (line !== '') line += ' ';
                 let word = words[i];
                 let max = Math.max(context.measureText(line).width, context.measureText(line + word).width);
-                if (max > LINE_WIDTH) {
+                if (max > this.config.lineWidth) {
                     lines.push(line);
                     line = '';
                 }
                 line += word;
             }
-            if(line !== '' || lines.length === 0) {
+            if (line !== '' || lines.length === 0) {
                 lines.push(line);
             }
 
         }
-        if(lines.length > maxLines) {
+        if (lines.length > maxLines) {
             lines = lines.slice(0, maxLines);
             lines[lines.length - 1] += '...';
         }
@@ -114,8 +135,8 @@ class GifGenerator {
      * @param {done} done
      * @return {GIFEncoder}
      */
-    static prepareEncoder(height, filePath, done) {
-        let encoder = new GIFEncoder(GIF_WIDTH, height);
+    prepareEncoder(height, filePath, done) {
+        let encoder = new GIFEncoder(this.config.width, height);
         let readStream = encoder.createReadStream();
         let writeStream = fs.createWriteStream(filePath);
         readStream.pipe(writeStream);
@@ -132,9 +153,14 @@ class GifGenerator {
      * @param {GIFEncoder} encoder
      * @param {number} height
      */
-    static renderSpoilerMessage(context, encoder, height) {
-        GifGenerator.clearContextBackground(context, height);
-        GifGenerator.renderTextToContext(context, LINE_HEIGHT / 2, SPOILER_MESSAGE, SPOILER_MESSAGE_COLOUR);
+    renderSpoilerMessage(context, encoder, height) {
+        this.clearContextBackground(context, height);
+        this.renderTextToContext(
+            context,
+            this.config.lineHeight / 2,
+            this.config.placeholderText,
+            this.config.colours.placeholder
+        );
         encoder.addFrame(context);
     }
 
@@ -144,12 +170,12 @@ class GifGenerator {
      * @param {number} height
      * @param {string[]} lines
      */
-    static renderLines(context, encoder, height, lines) {
-        GifGenerator.clearContextBackground(context, height);
+    renderLines(context, encoder, height, lines) {
+        this.clearContextBackground(context, height);
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
-            let marginTop = LINE_HEIGHT / 2 * (i + 1);
-            GifGenerator.renderTextToContext(context, marginTop, line, TEXT_COLOUR);
+            let marginTop = this.config.lineHeight / 2 * (i + 1);
+            this.renderTextToContext(context, marginTop, line, this.config.colours.text);
         }
         encoder.addFrame(context);
     }
@@ -158,14 +184,14 @@ class GifGenerator {
      * @param {number} height
      * @return {Context2d}
      */
-    static createCanvasContext(height) {
-        let canvas = new Canvas(GIF_WIDTH, height);
+    createCanvasContext(height) {
+        let canvas = new Canvas(this.config.width, height);
         let context = canvas.getContext('2d');
-        if(SOURCE_SANS_PRO !== null) {
+        if (SOURCE_SANS_PRO !== null) {
             context.addFont(SOURCE_SANS_PRO);
         }
         let fontName = SOURCE_SANS_PRO !== null ? 'aSourceSansPro' : '"Lucida Sans Unicode"';
-        context.font = `13px ${fontName}`;
+        context.font = `${this.config.fontSize} ${fontName}`;
         return context;
     }
 
@@ -173,10 +199,10 @@ class GifGenerator {
      * @param {Context2d} context
      * @param {number} height
      */
-    static clearContextBackground(context, height) {
-        context.fillStyle = BACKGROUND_COLOUR;
-        context.strokeStyle = STROKE_COLOUR;
-        context.rect(0, 0, GIF_WIDTH, height);
+    clearContextBackground(context, height) {
+        context.fillStyle = this.config.colours.background;
+        context.strokeStyle = this.config.colours.stroke;
+        context.rect(0, 0, this.config.width, height);
         context.fill();
         context.stroke();
     }
@@ -188,9 +214,9 @@ class GifGenerator {
      * @param {string} text
      * @param {string} colour
      */
-    static renderTextToContext(context, marginTop, text, colour) {
+    renderTextToContext(context, marginTop, text, colour) {
         context.fillStyle = colour;
-        context.fillText(text, MARGIN, marginTop);
+        context.fillText(text, this.config.margin, marginTop);
     }
 
 }
