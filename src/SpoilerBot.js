@@ -56,7 +56,7 @@ class SpoilerBot {
             throw new Error('No config has been specified!');
         }
         if (config.token === undefined && config.client === undefined) {
-            throw new Error('You need to specify `token` or `client` for this but to work!');
+            throw new Error('You need to specify `token` or `client` for this bot to work!');
         }
         if (config.token !== undefined && config.client !== undefined) {
             throw new Error('You ca\'t specify both `token` and `client`! Choose one.');
