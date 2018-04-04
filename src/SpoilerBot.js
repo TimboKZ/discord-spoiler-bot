@@ -52,29 +52,32 @@ class SpoilerBot {
      * @param {Object} [config.gif]
      */
     constructor(config) {
+        const throwErr = message => {
+            throw new Error(message);
+        };
         if (!config) {
-            throw new Error('No config has been specified!');
+            throwErr('No config has been specified!');
         }
         if (config.token === undefined && config.client === undefined) {
-            throw new Error('You need to specify `token` or `client` for this bot to work!');
+            throwErr('You need to specify `token` or `client` for this bot to work!');
         }
         if (config.token !== undefined && config.client !== undefined) {
-            throw new Error('You ca\'t specify both `token` and `client`! Choose one.');
+            throwErr('You can\'t specify both `token` and `client`! Choose one.');
         }
         if (
             config.client !== undefined
             && !(DiscordClient.isDiscordJS(config.client) || DiscordClient.isDiscordIO(config.client))
         ) {
-            throw new Error('`client` must be an instance of discord.js or discord.io client!');
+            throwErr('`client` must be an instance of discord.js or discord.io client!');
         }
         if (config.maxLines !== undefined && (typeof config.maxLines !== 'number' || config.maxLines < 1)) {
-            throw new Error('`maxLines` should be an integer greater than zero!');
+            throwErr('`maxLines` should be an integer greater than zero!');
         }
         if (config.include !== undefined && config.exclude !== undefined) {
-            throw new Error('You can\'t specify both included and excluded channels - choose one.');
+            throwErr('You can\'t specify both included and excluded channels - choose one.');
         }
         if (config.extractSpoiler !== undefined && typeof config.extractSpoiler !== 'function') {
-            throw new Error('`extractFunction` must be a function!');
+            throwErr('`extractFunction` must be a function!');
         }
         this.config = config;
         this.gifGenerator = new GifGenerator(this.config.gif);
@@ -83,7 +86,7 @@ class SpoilerBot {
     connect() {
         this.client = new DiscordClient(this.config);
         this.client.addMessageListener(this.processMessage.bind(this));
-        console.log('Discord Spoiler Bot is running...');
+        console.log('Discord Spoiler Bot is running!');
     }
 
     /**
@@ -111,7 +114,7 @@ class SpoilerBot {
     }
 
     /**
-     * @param {number} channelId
+     * @param {string} channelId
      * @return {boolean}
      */
     checkChannel(channelId) {
