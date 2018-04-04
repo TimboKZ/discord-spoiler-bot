@@ -9,8 +9,10 @@
 
 const fs = require('fs');
 const Promise = require('bluebird');
+
 const DiscordClient = require('./DiscordClient');
 const GifGenerator = require('./GifGenerator');
+const Util = require('./Util');
 
 const DEFAULT_MAX_LINES = 6;
 
@@ -67,7 +69,7 @@ class SpoilerBot {
         }
         if (
             config.client !== undefined
-            && !(DiscordClient.isDiscordJS(config.client) || DiscordClient.isDiscordIO(config.client))
+            && !(DiscordClient.objectIsDiscordJS(config.client) || DiscordClient.objectIsDiscordIO(config.client))
         ) {
             throwErr('`client` must be an instance of discord.js or discord.io client!');
         }
@@ -82,40 +84,58 @@ class SpoilerBot {
         }
         this.config = config;
         this.gifGenerator = new GifGenerator(this.config.gif);
+
+        this.checkMarkPermission = this.checkMarkPermission.bind(this);
     }
 
     connect() {
-        this.client = new DiscordClient(this.config);
-        this.client.addMessageListener(this.processMessage.bind(this));
         Promise.resolve()
+            .then(() => this.client = new DiscordClient(this.config))
+            .then(() => this.client.addMessageListener(this.processMessage.bind(this)))
             .then(() => this.client.loginIfNecessary())
             .then(() => this.client.setPresence('<1>:spoiler:<2>'))
-            .then(() => console.log('Discord Spoiler Bot is running!'))
-            .catch(error => console.error(error));
+            .then(() => Util.log('Discord Spoiler Bot is running!'))
+            .catch(error => Util.error(error));
     }
 
     /**
      * @param {DiscordMessage} message
      */
     processMessage(message) {
-        if (this.checkChannel(message.channelId)) {
-            this.extractSpoiler(
-                message,
-                this.client.fetchMessage.bind(this.client),
-                this.checkMarkPermission.bind(this),
-                (error, spoiler) => {
-                    if (error) {
-                        this.printError(message, error);
-                    } else if (spoiler) {
-                        this.client.deleteMessage(message, () => {
-                            this.client.deleteMessage(spoiler.message, () => {
-                                this.printSpoiler(message, spoiler);
-                            });
+        // Ignore bot's own messages, check if we're supposed to listen to the channel.
+        if (message.authorId !== this.client.getBotId() && this.checkChannel(message.channelId)) {
+            /** @type {Spoiler} */
+            let spoiler;
+            return Promise.resolve()
+                .then(() => this.extractSpoiler(message, this.client.fetchMessage, this.checkMarkPermission))
+                .then(_spoiler => {
+                    // No spoiler extracted, do nothing
+                    if (!_spoiler) return;
+
+                    // Otherwise process the spoiler
+                    spoiler = _spoiler;
+                    return Promise.resolve()
+                        .then(() => this.client.deleteMessage(message))
+                        .then(() => {
+                            // If trigger message is not the same as spoiler message (e.g. we marked someone else's
+                            // message, we need to delete the spoiler message too.
+                            if (message.id !== spoiler.message.id) {
+                                return this.client.deleteMessage(spoiler.message);
+                            }
+                        })
+                        .then(() => this.printSpoiler(message, spoiler))
+                        .then(() => {
+                            let topic = spoiler.topic ? `'${spoiler.topic}'` : 'untitled';
+                            if (message.id === spoiler.message.id)
+                                Util.log(`Processed ${topic} spoiler from ${message.authorName}.`);
+                            else
+                                Util.log(`${message.authorName} marked ${topic} spoiler by ${spoiler.message.authorName}.`);
                         });
-                    }
-                }
-            );
+                })
+                .catch(error => this.sendErrorMessage(message, error));
         }
+
+        return Promise.resolve(null);
     }
 
     /**
@@ -137,19 +157,32 @@ class SpoilerBot {
     /**
      * @param {string} channelId
      * @param {string} userId
-     * @param {markCallback} callback
-     * @return {boolean}
+     * @param {markCallback} callback deprecated: Used in legacy code
+     * @return {Promise}
      */
     checkMarkPermission(channelId, userId, callback) {
-        if (this.config.markAllowAll === true) {
-            callback(true);
-        } else if (this.config.markUserIds !== undefined && this.config.markUserIds.indexOf(userId) !== -1) {
-            callback(true);
-        } else if (this.config.markRoleIds !== undefined) {
-            this.client.hasRoles(channelId, userId, this.config.markRoleIds, callback);
-        } else {
-            callback(false);
+        let promise = Promise.resolve()
+            .then(() => {
+                if (this.config.markAllowAll === true) {
+                    return true;
+                } else if (this.config.markUserIds !== undefined && this.config.markUserIds.indexOf(userId) !== -1) {
+                    return true;
+                } else if (this.config.markRoleIds !== undefined) {
+                    return this.client.hasRoles(channelId, userId, this.config.markRoleIds);
+                }
+                return false;
+            });
+
+        // Handle legacy callback
+        if (callback) {
+            promise.then(canMark => callback(canMark))
+                .catch(error => {
+                    Util.error(error);
+                    callback(false);
+                });
         }
+
+        return promise;
     }
 
     /**
@@ -158,7 +191,7 @@ class SpoilerBot {
      */
 
     /**
-     * @callback fetchMessage
+     * @callback fetchMessageLegacy
      * @param {string} channelId
      * @param {string} messageId
      * @param {fetchMessageCallback} callback
@@ -166,10 +199,23 @@ class SpoilerBot {
      */
 
     /**
-     * @callback checkMarkPermission
+     * @callback fetchMessage
+     * @param {string} channelId
+     * @param {string} messageId
+     * @return {DiscordMessage}
+     */
+
+    /**
+     * @callback checkMarkPermissionLegacy
      * @param {string} channelId
      * @param {string} userId
      * @param {markCallback} callback
+     */
+
+    /**
+     * @callback checkMarkPermission
+     * @param {string} channelId
+     * @param {string} userId
      */
 
     /**
@@ -180,51 +226,80 @@ class SpoilerBot {
 
     /**
      * @param {DiscordMessage} message
-     * @param {fetchMessage} fetchMessage
-     * @param {checkMarkPermission} checkMarkPermission
-     * @param {spoilerCallback} callback
+     * @param {fetchMessage|fetchMessageLegacy} fetchMessage
+     * @param {checkMarkPermission|checkMarkPermissionLegacy} checkMarkPermission
+     * @returns {Promise|PromiseLike}
      */
-    extractSpoiler(message, fetchMessage, checkMarkPermission, callback) {
+    extractSpoiler(message, fetchMessage, checkMarkPermission) {
 
-        // Try user's custom spoiler extracting message (if any)
-        if (this.config.extractSpoiler)
-            return this.config.extractSpoiler(message, fetchMessage, checkMarkPermission, callback);
+        // Try user's custom spoiler extracting message (if any))
+        if (this.config.extractSpoiler) {
+            // In legacy version of the config, `extractSpoiler` used a callback of form (error, spoiler) as the last
+            // argument. The new implementation uses promises, but we need to support the "old" approach too for
+            // backwards compatibility.
+
+            let potentialPromise;
+            const legacyPromise = new Promise((resolve, reject) => {
+                let callback = (error, spoiler) => error ? reject(error) : resolve(spoiler);
+
+                // Record return value (if any)
+                potentialPromise = this.config.extractSpoiler(message, fetchMessage, checkMarkPermission, callback);
+            });
+
+            // The original function returned a promise, so we're good.
+            if (potentialPromise && potentialPromise.then !== undefined) return potentialPromise;
+
+            // The original function used legacy callback system, return the wrapped version.
+            return legacyPromise;
+        }
+
 
         // Check if current message is a spoiler
         let selfSpoilerMatch = message.content.match(/(^.*):spoiler:(.+)$/);
         if (selfSpoilerMatch) {
             let topic = selfSpoilerMatch[1].trim();
             let content = selfSpoilerMatch[2];
-            return callback(null, new Spoiler(message, topic, content));
+            return Promise.resolve(new Spoiler(message, topic, content));
         }
 
         // Check if current message wants to mark a spoiler
-        let spoilerMarkmatch = message.content.match(/^(.+):spoils:(.*)$/);
-        if (spoilerMarkmatch) {
-            let idOfMessageToMark = spoilerMarkmatch[1];
-            let spoilerTopic = spoilerMarkmatch[2];
-            checkMarkPermission(message.channelId, message.authorId, (canMark) => {
-                if (canMark) {
-                    fetchMessage(message.channelId, idOfMessageToMark, spoilerMessage => {
-                        callback(null, new Spoiler(spoilerMessage, spoilerTopic, spoilerMessage.content));
-                    });
-                } else {
-                    callback('You don\'t have permission to mark spoilers.');
-                }
-            });
+        let spoilerMarkMatch = message.content.match(/^(.+):spoils:(.*)$/);
+        if (spoilerMarkMatch) {
+            let idOfMessageToMark = spoilerMarkMatch[1];
+            let spoilerTopic = spoilerMarkMatch[2];
+            return Promise.resolve()
+                .then(() => checkMarkPermission(message.channelId, message.authorId))
+                .then(canMark => {
+                    if (canMark) {
+                        return fetchMessage(message.channelId, idOfMessageToMark);
+                    } else {
+                        throw new Error('You don\'t have permission to mark spoilers.');
+                    }
+                })
+                .then(spoilerMessage => new Spoiler(spoilerMessage, spoilerTopic, spoilerMessage.content));
         }
 
         // Not an "interesting message", do nothing
-        return callback(null, null);
+        return Promise.resolve(null);
     }
 
     /**
      * @param {DiscordMessage} originalMessage
-     * @param {string} error
+     * @param {string|Error} error
+     * @returns {Promise}
      */
-    printError(originalMessage, error) {
-        let messageContent = `<@${originalMessage.authorId}> ${error}`;
-        this.client.sendMessage(originalMessage.channelId, messageContent, () => null);
+    sendErrorMessage(originalMessage, error) {
+        let errorMessage = typeof(error) === 'string' ? error : error.message;
+        let messageContent = `<@${originalMessage.authorId}> ${errorMessage}`;
+        return Promise.resolve()
+            .then(() => this.client.sendMessage(originalMessage.channelId, messageContent))
+            .then(() => {
+                Util.log(`Sent error message to ${originalMessage.authorName}:`, error);
+            })
+            .catch(error => {
+                Util.error('Failed to send error message to user (see below).');
+                Util.error(error);
+            });
     }
 
     /**
