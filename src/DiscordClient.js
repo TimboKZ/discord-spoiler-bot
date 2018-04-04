@@ -145,7 +145,7 @@ class DiscordClient {
     deleteMessage(message, done) {
         if (this.type === DISCORD_JS) {
             this.client.channels.get(message.channelId).fetchMessage(message.id).then((message) => {
-                message.delete();
+                message.delete().catch(() => undefined);
                 done();
             });
         } else {
