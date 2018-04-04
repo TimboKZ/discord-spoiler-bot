@@ -5,7 +5,10 @@
  * @license MIT
  */
 
+const Promise = require('bluebird');
 const DiscordJS = require('discord.js');
+
+const Util = require('./Util');
 
 const DISCORD_JS = 'discord.js';
 const DISCORD_IO = 'discord.io';
@@ -13,16 +16,19 @@ const DISCORD_IO = 'discord.io';
 class DiscordMessage {
 
     /**
-     * @param {string} id
-     * @param {string} channelId
-     * @param {string} authorId
-     * @param {string} content
+     * @param {object} data
+     * @param {string} data.id
+     * @param {string} data.channelId
+     * @param {string} data.authorId
+     * @param {string} data.authorName
+     * @param {string} data.content
      */
-    constructor(id, channelId, authorId, content) {
-        this.id = id;
-        this.channelId = channelId;
-        this.authorId = authorId;
-        this.content = content;
+    constructor(data) {
+        this.id = data.id;
+        this.channelId = data.channelId;
+        this.authorId = data.authorId;
+        this.authorName = data.authorName;
+        this.content = data.content;
     }
 
 }
@@ -35,20 +41,29 @@ class DiscordClient {
      * @param {string} config.token
      */
     constructor(config) {
-        let client = config.client;
+        this.token = config.token;
+        this.client = config.client;
+        this.externalClient = true;
         if (config.token) {
-            client = new DiscordJS.Client();
-            client.login(config.token);
+            this.client = new DiscordJS.Client();
+            this.externalClient = false;
         }
-        this.type = DiscordClient.isDiscordJS(client) ? DISCORD_JS : DISCORD_IO;
-        this.client = client;
+        this.type = DiscordClient.objectIsDiscordJS(this.client) ? DISCORD_JS : DISCORD_IO;
+
+        this.fetchMessage = this.fetchMessage.bind(this);
+    }
+
+    loginIfNecessary() {
+        if (this.externalClient) return Promise.resolve();
+        if (this.type !== DISCORD_JS) return Promise.reject(new Error('Bad Discord client type!'));
+        return this.client.login(this.token);
     }
 
     /**
      * @param {Object} client
      * @return {boolean}
      */
-    static isDiscordJS(client) {
+    static objectIsDiscordJS(client) {
         let checks = true;
         checks = checks && typeof client.fetchUser === 'function';
         checks = checks && typeof client.login === 'function';
@@ -62,7 +77,7 @@ class DiscordClient {
      * @param {Object} client
      * @return {boolean}
      */
-    static isDiscordIO(client) {
+    static objectIsDiscordIO(client) {
         let checks = true;
         checks = checks && typeof client.connect === 'function';
         checks = checks && typeof client.disconnect === 'function';
@@ -81,7 +96,7 @@ class DiscordClient {
      * @param {messageListener} listener
      */
     addMessageListener(listener) {
-        if (this.type === DISCORD_JS) {
+        if (this.isDiscordJs()) {
             this.client.on('message', DiscordClient.processDiscordJSMessage.bind(null, listener));
         } else {
             this.client.on('message', DiscordClient.processDiscordIOMessage.bind(null, listener));
@@ -93,12 +108,13 @@ class DiscordClient {
      * @param {DiscordJS.Message} message
      */
     static processDiscordJSMessage(listener, message) {
-        listener(new DiscordMessage(
-            message.id,
-            message.channel.id,
-            message.author.id,
-            message.content
-        ));
+        listener(new DiscordMessage({
+            id: message.id,
+            channelId: message.channel.id,
+            authorId: message.author.id,
+            authorName: message.author.username,
+            content: message.content,
+        }));
     }
 
     /**
@@ -110,49 +126,109 @@ class DiscordClient {
      * @param {Object} event
      */
     static processDiscordIOMessage(listener, user, userID, channelID, message, event) {
-        listener(new DiscordMessage(
-            event.d.id,
-            channelID,
-            userID,
-            message
-        ));
+        listener(new DiscordMessage({
+            id: event.d.id,
+            channelId: channelID,
+            authorId: userID,
+            authorName: user,
+            content: message,
+        }));
+    }
+
+    isDiscordJs() {
+        return this.type === DISCORD_JS;
+    }
+
+    /**
+     * @returns {string}
+     */
+    getBotId() {
+        if (this.isDiscordJs()) {
+            return this.client.user.id;
+        } else {
+            return this.client.id;
+        }
+    }
+
+    /**
+     * @param message
+     * @returns {Promise<ClientUser>}
+     */
+    setPresence(message) {
+        if (this.type === DISCORD_JS) {
+            return this.client.user.setPresence({game: {name: message, type: 'LISTENING'}});
+        } else {
+            return Promise.resolve()
+                .then(() => this.client.setPresence({game: message, type: 1}));
+        }
     }
 
     /**
      * @param {string} channelId
      * @param {string} messageId
-     * @param {messageListener} callback
+     * @param {messageListener} callback deprecated: Used in legacy code
+     * @returns {Promise}
      */
     fetchMessage(channelId, messageId, callback) {
+        let promise;
         if (this.type === DISCORD_JS) {
-            this.client.channels.get(channelId).fetchMessage(messageId).then((message) => {
-                callback(new DiscordMessage(message.id, message.channel.id, message.author.id, message.content));
-            });
+            promise = Promise.resolve()
+                .then(() => this.client.channels.get(channelId).fetchMessage(messageId))
+                .then((message) => new DiscordMessage({
+                    id: message.id,
+                    channelId: message.channel.id,
+                    authorId: message.author.id,
+                    authorName: message.author.username,
+                    content: message.content,
+                }));
         } else {
-            this.client.getMessage({
-                channelID: channelId,
-                messageID: messageId
-            }, (error, message) => {
-                callback(new DiscordMessage(message.id, message.channel_id, message.author.id, message.content));
+            promise = new Promise((resolve, reject) => {
+                this.client.getMessage({channelID: channelId, messageID: messageId}, (error, message) => {
+                    if (error) return reject(error);
+                    resolve(new DiscordMessage({
+                        id: message.id,
+                        channelId: message.channel_id,
+                        authorId: message.author.id,
+                        authorName: message.author.username,
+                        content: message.content,
+                    }));
+                });
             });
         }
+
+        // Handle legacy callback
+        if (callback) {
+            promise
+                .then(message => callback(message))
+                .catch(error => {
+                    Util.error(error);
+                    callback(null);
+                });
+        }
+
+        return promise;
     }
 
     /**
      * @param {DiscordMessage} message
-     * @param {function} done
+     * @returns {Promise|PromiseLike}
      */
-    deleteMessage(message, done) {
+    deleteMessage(message) {
+        if (arguments.length > 1)
+            return Promise.reject(new Error('`done` parameter was deprecated, use promises instead!'));
+
         if (this.type === DISCORD_JS) {
-            this.client.channels.get(message.channelId).fetchMessage(message.id).then((message) => {
-                message.delete().catch(() => undefined);
-                done();
-            });
+            return Promise.resolve()
+                .then(() => this.client.channels.get(message.channelId).fetchMessage(message.id))
+                .then((message) => message.delete());
         } else {
-            this.client.deleteMessage({
-                channelID: message.channelId,
-                messageID: message.id
-            }, done);
+            return new Promise((resolve, reject) => {
+                const callback = error => error ? reject(error) : resolve();
+                this.client.deleteMessage({
+                    channelID: message.channelId,
+                    messageID: message.id
+                }, callback);
+            });
         }
     }
 
@@ -160,9 +236,9 @@ class DiscordClient {
      * @param {string} channelId
      * @param {string} userId
      * @param {string[]} roleIds
-     * @param {markCallback} callback
+     * @returns {Promise}
      */
-    hasRoles(channelId, userId, roleIds, callback) {
+    hasRoles(channelId, userId, roleIds) {
         let roles = null;
         if (this.type === DISCORD_JS) {
             let channel = this.client.channels.get(channelId);
@@ -178,23 +254,26 @@ class DiscordClient {
                 break;
             }
         }
-        callback(result);
+        return Promise.resolve(result);
     }
 
     /**
      * @param {string} channelId
      * @param {string} content
-     * @param {function} done
+     * @returns {Promise}
      */
-    sendMessage(channelId, content, done) {
+    sendMessage(channelId, content) {
         if (this.type === DISCORD_JS) {
-            this.client.channels.get(channelId).send(content).then(() => done());
+            return this.client.channels.get(channelId).send(content);
         } else {
             let options = {
                 to: channelId,
                 message: content,
             };
-            this.client.sendMessage(options, done);
+            return new Promise((resolve, reject) => {
+                const callback = (error, response) => error ? reject(error) : resolve(response);
+                this.client.sendMessage(options, callback);
+            });
         }
     }
 
@@ -216,7 +295,7 @@ class DiscordClient {
             };
             channel.send(content, options)
                 .then(() => done())
-                .catch(error => console.log(`Error sending file: ${error}`));
+                .catch(error => Util.error('Error sending file:', error));
         } else {
             let options = {
                 to: channelId,

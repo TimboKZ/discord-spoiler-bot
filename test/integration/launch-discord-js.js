@@ -9,11 +9,13 @@ const Discord = require('discord.js');
 const SpoilerBot = require('../../src/SpoilerBot');
 const config = require('./config');
 
-let client = new Discord.Client();
-client.login(config.token);
-
+let token = config.token;
 delete config.token;
-config.client = client;
 
+let client = new Discord.Client();
+config.client = client;
 let bot = new SpoilerBot(config);
-bot.connect();
+
+client.login(token)
+    .then(() => bot.connect())
+    .catch(console.error);
