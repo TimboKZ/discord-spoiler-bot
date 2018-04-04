@@ -180,26 +180,37 @@ class SpoilerBot {
      * @param {spoilerCallback} callback
      */
     extractSpoiler(message, fetchMessage, checkMarkPermission, callback) {
-        if (this.config.extractSpoiler) {
-            this.config.extractSpoiler(message, fetchMessage, checkMarkPermission, callback);
-        } else if (message.content.match(/^.+:spoiler:.+$/)) {
-            let parts = message.content.split(':spoiler:');
-            callback(null, new Spoiler(message, parts[0], parts[1]));
-        } else if (message.content.match(/^.+:spoils:.+$/)) {
-            let parts = message.content.split(':spoils:');
+
+        // Try user's custom spoiler extracting message (if any)
+        if (this.config.extractSpoiler)
+            return this.config.extractSpoiler(message, fetchMessage, checkMarkPermission, callback);
+
+        // Check if current message is a spoiler
+        let selfSpoilerMatch = message.content.match(/(^.*):spoiler:(.+)$/);
+        if (selfSpoilerMatch) {
+            let topic = selfSpoilerMatch[1].trim();
+            let content = selfSpoilerMatch[2];
+            return callback(null, new Spoiler(message, topic, content));
+        }
+
+        // Check if current message wants to mark a spoiler
+        let spoilerMarkmatch = message.content.match(/^(.+):spoils:(.*)$/);
+        if (spoilerMarkmatch) {
+            let idOfMessageToMark = spoilerMarkmatch[1];
+            let spoilerTopic = spoilerMarkmatch[2];
             checkMarkPermission(message.channelId, message.authorId, (canMark) => {
                 if (canMark) {
-                    fetchMessage(message.channelId, parts[0], spoilerMessage => {
-                        let topic = parts[1];
-                        callback(null, new Spoiler(spoilerMessage, topic, spoilerMessage.content));
+                    fetchMessage(message.channelId, idOfMessageToMark, spoilerMessage => {
+                        callback(null, new Spoiler(spoilerMessage, spoilerTopic, spoilerMessage.content));
                     });
                 } else {
                     callback('You don\'t have permission to mark spoilers.');
                 }
             });
-        } else {
-            callback(null, null);
         }
+
+        // Not an "interesting message", do nothing
+        return callback(null, null);
     }
 
     /**
@@ -216,7 +227,8 @@ class SpoilerBot {
      * @param {Spoiler} spoiler
      */
     printSpoiler(originalMessage, spoiler) {
-        let messageContent = `<@${spoiler.message.authorId}>: **${spoiler.topic}** spoiler`;
+        let messageContent = `<@${spoiler.message.authorId}>: `;
+        messageContent += spoiler.topic ? `**${spoiler.topic}** spoiler` : 'Spoiler';
         if (originalMessage.id !== spoiler.message.id) {
             messageContent += ` (marked by <@${originalMessage.authorId}>)`;
         }
