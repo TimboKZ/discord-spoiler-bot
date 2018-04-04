@@ -8,6 +8,7 @@
 'use strict';
 
 const fs = require('fs');
+const Promise = require('bluebird');
 const DiscordClient = require('./DiscordClient');
 const GifGenerator = require('./GifGenerator');
 
@@ -86,7 +87,11 @@ class SpoilerBot {
     connect() {
         this.client = new DiscordClient(this.config);
         this.client.addMessageListener(this.processMessage.bind(this));
-        console.log('Discord Spoiler Bot is running!');
+        Promise.resolve()
+            .then(() => this.client.loginIfNecessary())
+            .then(() => this.client.setPresence('<1>:spoiler:<2>'))
+            .then(() => console.log('Discord Spoiler Bot is running!'))
+            .catch(error => console.error(error));
     }
 
     /**

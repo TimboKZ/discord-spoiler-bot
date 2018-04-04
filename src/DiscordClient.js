@@ -5,6 +5,7 @@
  * @license MIT
  */
 
+const Promise = require('bluebird');
 const DiscordJS = require('discord.js');
 
 const DISCORD_JS = 'discord.js';
@@ -35,13 +36,20 @@ class DiscordClient {
      * @param {string} config.token
      */
     constructor(config) {
-        let client = config.client;
+        this.token = config.token;
+        this.client = config.client;
+        this.externalClient = true;
         if (config.token) {
-            client = new DiscordJS.Client();
-            client.login(config.token);
+            this.client = new DiscordJS.Client();
+            this.externalClient = false;
         }
-        this.type = DiscordClient.isDiscordJS(client) ? DISCORD_JS : DISCORD_IO;
-        this.client = client;
+        this.type = DiscordClient.isDiscordJS(this.client) ? DISCORD_JS : DISCORD_IO;
+    }
+
+    loginIfNecessary() {
+        if (this.externalClient) return Promise.resolve();
+        if (this.type !== DISCORD_JS) return Promise.reject(new Error('Bad Discord client type!'));
+        return this.client.login(this.token);
     }
 
     /**
@@ -116,6 +124,19 @@ class DiscordClient {
             userID,
             message
         ));
+    }
+
+    /**
+     * @param message
+     * @returns {Promise<ClientUser>}
+     */
+    setPresence(message) {
+        if (this.type === DISCORD_JS) {
+            return this.client.user.setPresence({game: {name: message, type: 'LISTENING'}});
+        } else {
+            return Promise.resolve()
+                .then(() => this.client.setPresence({game: message, type: 1}));
+        }
     }
 
     /**
