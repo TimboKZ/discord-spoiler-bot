@@ -30,11 +30,11 @@
   },
   "homepage": "https://github.com/TimboKZ/discord-spoiler-bot#readme",
   "dependencies": {
-    "bluebird": "^3.5.1",
-    "canvas": "^1.6.3",
-    "discord.io": "github:woor/discord.io#gateway_v6",
-    "discord.js": "^11.1.0",
-    "gifencoder": "^1.0.6"
+    "bluebird": "^3.5.2",
+    "canvas": "^2.0.1",
+    "discord.io": "^2.5.3",
+    "discord.js": "^11.4.2",
+    "gifencoder": "^1.1.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

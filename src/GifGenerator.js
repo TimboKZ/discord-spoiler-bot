@@ -185,7 +185,7 @@ class GifGenerator {
      * @return {Context2d}
      */
     createCanvasContext(height) {
-        let canvas = new Canvas(this.config.width, height);
+        let canvas = new Canvas.Canvas(this.config.width, height);
         let context = canvas.getContext('2d');
         if (SOURCE_SANS_PRO !== null) {
             context.addFont(SOURCE_SANS_PRO);
