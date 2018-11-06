@@ -34,7 +34,9 @@
     "canvas": "^2.0.1",
     "discord.io": "^2.5.3",
     "discord.js": "^11.4.2",
-    "gifencoder": "^1.1.0"
+    "gifencoder": "^1.1.0",
+    "node-pre-gyp": "^0.11.0",
+    "tar": "^4.4.7"
   },
   "devDependencies": {
     "chai": "^3.5.0",
